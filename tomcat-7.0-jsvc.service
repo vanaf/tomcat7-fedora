@@ -11,9 +11,11 @@ Description=Apache Tomcat Web Application Container JSVC wrapper
 After=syslog.target network.target
 
 [Service]
-Type=forking
-ExecStart=/usr/sbin/tomcat-jsvc-sysd start
-ExecStop=/usr/sbin/tomcat-jsvc-sysd stop
+Type=simple
+EnvironmentFile=/etc/tomcat/tomcat.conf
+Environment="NAME=" "USE_JSVC=true"
+ExecStart=/usr/libexec/tomcat/server start
+ExecStop=/usr/libexec/tomcat/server stop
 
 [Install]
 WantedBy=multi-user.target

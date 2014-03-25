@@ -1,11 +1,6 @@
 #!/bin/bash
 
-if [ -r /usr/share/java-utils/java-functions ]; then
-  . /usr/share/java-utils/java-functions
-else
-  echo "Can't read Java functions library, aborting"
-  exit 1
-fi
+. /usr/libexec/tomcat/functions
 
 # Get the tomcat config (use this for environment specific settings)
 
@@ -26,7 +21,6 @@ if [ -z "$CATALINA_BASE" ]; then
     CATALINA_BASE="${CATALINA_HOME}"
   fi
 fi
-
 VERBOSE=1
 set_javacmd
 cd ${CATALINA_HOME}

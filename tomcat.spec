@@ -31,7 +31,7 @@
 %global jspspec 2.2
 %global major_version 7
 %global minor_version 0
-%global micro_version 47
+%global micro_version 52
 %global packdname apache-tomcat-%{version}-src
 %global servletspec 3.0
 %global elspec 2.2
@@ -54,7 +54,7 @@
 Name:          tomcat
 Epoch:         0
 Version:       %{major_version}.%{minor_version}.%{micro_version}
-Release:       3%{?dist}
+Release:       1%{?dist}
 Summary:       Apache Servlet/JSP Engine, RI for Servlet %{servletspec}/JSP %{jspspec} API
 
 Group:         System Environment/Daemons
@@ -76,9 +76,8 @@ Source13:      jasper-el-OSGi-MANIFEST.MF
 Source14:      jasper-OSGi-MANIFEST.MF
 Source15:      tomcat-api-OSGi-MANIFEST.MF
 Source16:      tomcat-juli-OSGi-MANIFEST.MF
-Source18:      %{name}-%{major_version}.%{minor_version}-tomcat-jsvc-sysd
-Source19:      %{name}-%{major_version}.%{minor_version}-jsvc.wrapper
 Source20:      %{name}-%{major_version}.%{minor_version}-jsvc.service
+Source21:      tomcat-functions
 Source30:      tomcat-preamble
 Source31:      tomcat-server
 Source32:      tomcat-named.service
@@ -108,7 +107,7 @@ Requires:      apache-commons-logging
 Requires:      apache-commons-collections
 Requires:      apache-commons-dbcp
 Requires:      apache-commons-pool
-Requires:      java >= 1:1.6.0
+Requires:      java-headless >= 1:1.6.0
 Requires:      jpackage-utils
 Requires:      procps
 Requires:      %{name}-lib = %{epoch}:%{version}-%{release}
@@ -160,7 +159,7 @@ Requires: %{name} = %{epoch}:%{version}-%{release}
 Requires: apache-commons-daemon-jsvc
 
 %description jsvc
-Systemd service and wrapper scripts to start tomcat with jsvc,
+Systemd service to start tomcat with jsvc,
 which allows tomcat to perform some privileged operations
 (e.g. bind to a port < 1024) and then switch identity to a non-privileged user.
 
@@ -263,6 +262,7 @@ export OPT_JAR_LIST="xalan-j2-serializer"
       -Dno.build.dbcp=true \
       -Dversion="%{version}" \
       -Dversion.build="%{micro_version}" \
+      -Djava.7.home=%{java_home} \
       deploy dist-prepare dist-source javadoc
 
     # remove some jars that we'll replace with symlinks later
@@ -321,6 +321,7 @@ zip -u output/build/bin/tomcat-juli.jar META-INF/MANIFEST.MF
 %{__install} -d -m 0775 ${RPM_BUILD_ROOT}%{logdir}
 /bin/touch ${RPM_BUILD_ROOT}%{logdir}/catalina.out
 %{__install} -d -m 0775 ${RPM_BUILD_ROOT}%{_localstatedir}/run
+%{__install} -d -m 0775 ${RPM_BUILD_ROOT}%{_localstatedir}/lib/tomcats
 /bin/touch ${RPM_BUILD_ROOT}%{_localstatedir}/run/%{name}.pid
 /bin/echo "%{name}-%{major_version}.%{minor_version}.%{micro_version} RPM installed" >> ${RPM_BUILD_ROOT}%{logdir}/catalina.out
 %{__install} -d -m 0775 ${RPM_BUILD_ROOT}%{homedir}
@@ -353,12 +354,8 @@ popd
     ${RPM_BUILD_ROOT}%{_sbindir}/%{name}
 %{__install} -m 0644 %{SOURCE11} \
     ${RPM_BUILD_ROOT}%{_unitdir}/%{name}.service
-%{__install} -m 0644 %{SOURCE19} \
-    ${RPM_BUILD_ROOT}%{_sbindir}/%{name}-jsvc
 %{__install} -m 0644 %{SOURCE20} \
     ${RPM_BUILD_ROOT}%{_unitdir}/%{name}-jsvc.service
-%{__install} -m 0644 %{SOURCE18} \
-    ${RPM_BUILD_ROOT}%{_sbindir}/%{name}-jsvc-sysd
 %{__sed} -e "s|\@\@\@TCLOG\@\@\@|%{logdir}|g" %{SOURCE5} \
     > ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/%{name}
 %{__sed} -e "s|\@\@\@TCHOME\@\@\@|%{homedir}|g" \
@@ -370,6 +367,8 @@ popd
    -e "s|\@\@\@LIBDIR\@\@\@|%{_libdir}|g" %{SOURCE7} \
     > ${RPM_BUILD_ROOT}%{_bindir}/%{name}-tool-wrapper
 
+%{__install} -m 0644 %{SOURCE21} \
+    ${RPM_BUILD_ROOT}%{_libexecdir}/%{name}/functions
 %{__install} -m 0755 %{SOURCE30} \
     ${RPM_BUILD_ROOT}%{_libexecdir}/%{name}/preamble
 %{__install} -m 0755 %{SOURCE31} \
@@ -487,6 +486,9 @@ done
 %{__cp} -a tomcat-util.pom ${RPM_BUILD_ROOT}%{_mavenpomdir}/JPP.%{name}-tomcat-util.pom
 %add_maven_depmap JPP.%{name}-tomcat-util.pom %{name}/tomcat-util.jar
 
+%{__cp} -a tomcat-jdbc.pom ${RPM_BUILD_ROOT}%{_mavenpomdir}/JPP.%{name}-tomcat-jdbc.pom
+%add_maven_depmap JPP.%{name}-tomcat-jdbc.pom %{name}/tomcat-jdbc.jar
+
 mkdir -p ${RPM_BUILD_ROOT}%{_prefix}/lib/tmpfiles.d
 cat > ${RPM_BUILD_ROOT}%{_prefix}/lib/tmpfiles.d/%{name}.conf <<EOF
 f %{_localstatedir}/run/%{name}.pid 0644 tomcat tomcat -
@@ -556,6 +558,8 @@ fi
 %attr(0644,root,root) %{_unitdir}/%{name}.service
 %attr(0644,root,root) %{_unitdir}/%{name}@.service
 %attr(0755,root,root) %dir %{_libexecdir}/%{name}
+%attr(0755,root,root) %dir %{_localstatedir}/lib/tomcats
+%attr(0644,root,root) %{_libexecdir}/%{name}/functions
 %attr(0755,root,root) %{_libexecdir}/%{name}/preamble
 %attr(0755,root,root) %{_libexecdir}/%{name}/server
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}
@@ -627,6 +631,8 @@ fi
 %{_mavenpomdir}/JPP.%{name}-tomcat-juli.pom
 %{_mavenpomdir}/JPP.%{name}-tomcat-coyote.pom
 %{_mavenpomdir}/JPP.%{name}-tomcat-util.pom
+%{_mavenpomdir}/JPP.%{name}-tomcat-jdbc.pom
+
 
 %exclude %{libdir}/%{name}-el-%{elspec}-api.jar
 
@@ -656,11 +662,16 @@ fi
 
 %files jsvc
 %defattr(755,root,root,0755)
-%{_sbindir}/%{name}-jsvc
-%{_sbindir}/%{name}-jsvc-sysd
 %attr(0644,root,root) %{_unitdir}/%{name}-jsvc.service
 
 %changelog
+* Wed Mar 26 2014 Ivan Afonichev <ivan.afonichev@gmail.com> 0:7.0.52-1
+- Updated to 7.0.52
+- Rewrite jsvc implementation, resolves: rhbz#1051743
+- Switch to java-headless R, resolves: rhbz#1068566
+- Create and own %{_localstatedir}/lib/tomcats, resolves: rhbz#1026741
+- Add pom for tomcat-jdbc, resolves: rhbz#1011003 
+
 * Tue Jan 21 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 0:7.0.47-3
 - Fix installation of Maven metadata for tomcat-juli.jar
 - Resolves: rhbz#1033664
