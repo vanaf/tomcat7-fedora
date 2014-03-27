@@ -175,6 +175,13 @@ Requires(postun): chkconfig
 %description jsp-%{jspspec}-api
 Apache Tomcat JSP API implementation classes.
 
+%package log4j
+Group: Applications/Internet
+Summary: Log4j support for Apache Tomcat
+Requires: log4j
+
+%description log4j
+Log4j support for Apache Tomcat
 
 %package lib
 Group: Development/Libraries
@@ -596,6 +603,8 @@ fi
 %{homedir}/logs
 %{homedir}/conf
 
+%exclude %{confdir}/log4j.properties
+
 %files admin-webapps
 %defattr(0664,root,tomcat,0755)
 %{appdir}/host-manager
@@ -616,6 +625,11 @@ fi
 %{_mavenpomdir}/JPP-%{name}-jsp-api.pom
 %{_mavendepmapfragdir}/%{name}-tomcat-jsp-api
 
+%files log4j
+%defattr(0664,root,tomcat,0755)
+%config(noreplace) %{confdir}/log4j.properties
+%{libdir}/log4j.jar
+
 %files lib
 %defattr(-,root,root,-)
 %{libdir}
@@ -635,6 +649,7 @@ fi
 
 
 %exclude %{libdir}/%{name}-el-%{elspec}-api.jar
+%exclude %{libdir}/log4j.jar
 
 %files servlet-%{servletspec}-api
 %defattr(-,root,root,-)
