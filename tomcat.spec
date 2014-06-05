@@ -31,7 +31,7 @@
 %global jspspec 2.2
 %global major_version 7
 %global minor_version 0
-%global micro_version 52
+%global micro_version 54
 %global packdname apache-tomcat-%{version}-src
 %global servletspec 3.0
 %global elspec 2.2
@@ -54,7 +54,7 @@
 Name:          tomcat
 Epoch:         0
 Version:       %{major_version}.%{minor_version}.%{micro_version}
-Release:       3%{?dist}
+Release:       1%{?dist}
 Summary:       Apache Servlet/JSP Engine, RI for Servlet %{servletspec}/JSP %{jspspec} API
 
 Group:         System Environment/Daemons
@@ -680,6 +680,9 @@ fi
 %attr(0644,root,root) %{_unitdir}/%{name}-jsvc.service
 
 %changelog
+* Thu Jun 5 2014 Alexander Kurtakov <akurtako@redhat.com> 0:7.0.54-1
+- Update to upstream 7.0.54 - fixes compile with Java 8.
+
 * Wed May 21 2014 Alexander Kurtakov <akurtako@redhat.com> 0:7.0.52-3
 - Drop servlet/el api provides to reduce user machines ending with both.
 
