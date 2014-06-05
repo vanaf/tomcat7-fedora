@@ -458,7 +458,7 @@ done
 # we won't install dbcp, juli-adapters and juli-extras pom files
 for libname in annotations-api catalina jasper-el jasper catalina-ha; do
     %{__cp} -a %{name}-$libname.pom ${RPM_BUILD_ROOT}%{_mavenpomdir}/JPP.%{name}-$libname.pom
-    %add_maven_depmap JPP.%{name}-$libname.pom %{name}/$libname.jar
+    %add_maven_depmap JPP.%{name}-$libname.pom %{name}/$libname.jar -f "tomcat-lib"
 done
 
 # servlet-api jsp-api and el-api are not in tomcat subdir, since they are widely re-used elsewhere
@@ -556,7 +556,7 @@ fi
 /sbin/chkconfig --del tomcat > /dev/null 2>&1 || :
 /bin/systemctl try-restart tomcat.service > /dev/null 2>&1 || :
 
-%files
+%files 
 %defattr(0664,root,tomcat,0755)
 %doc {LICENSE,NOTICE,RELEASE*}
 %attr(0755,root,root) %{_bindir}/%{name}-digest
@@ -618,23 +618,19 @@ fi
 %defattr(-,root,root,-)
 %{_javadocdir}/%{name}
 
-%files jsp-%{jspspec}-api
+%files jsp-%{jspspec}-api -f output/dist/src/res/maven/.mfiles-tomcat-jsp-api
 %defattr(-,root,root,-)
 %{_javadir}/%{name}-jsp-%{jspspec}*.jar
-%{_javadir}/%{name}-jsp-api.jar
-%{_mavenpomdir}/JPP-%{name}-jsp-api.pom
-%{_mavendepmapfragdir}/%{name}-tomcat-jsp-api
 
 %files log4j
 %defattr(0664,root,tomcat,0755)
 %config(noreplace) %{confdir}/log4j.properties
 %{libdir}/log4j.jar
 
-%files lib
+%files lib -f output/dist/src/res/maven/.mfiles-tomcat-lib
 %defattr(-,root,root,-)
 %{libdir}
 %{bindir}/tomcat-juli.jar
-%{_mavendepmapfragdir}/%{name}
 %{_mavenpomdir}/JPP.%{name}-annotations-api.pom
 %{_mavenpomdir}/JPP.%{name}-catalina-ha.pom
 %{_mavenpomdir}/JPP.%{name}-catalina-tribes.pom
@@ -646,28 +642,20 @@ fi
 %{_mavenpomdir}/JPP.%{name}-tomcat-coyote.pom
 %{_mavenpomdir}/JPP.%{name}-tomcat-util.pom
 %{_mavenpomdir}/JPP.%{name}-tomcat-jdbc.pom
-
-
+%{_datadir}/maven-metadata/tomcat.xml
 %exclude %{libdir}/%{name}-el-%{elspec}-api.jar
 %exclude %{libdir}/log4j.jar
 
-%files servlet-%{servletspec}-api
+%files servlet-%{servletspec}-api -f output/dist/src/res/maven/.mfiles-tomcat-servlet-api
 %defattr(-,root,root,-)
 %doc LICENSE
 %{_javadir}/%{name}-servlet-%{servletspec}*.jar
-%{_javadir}/%{name}-servlet-api.jar
-%{_mavendepmapfragdir}/%{name}-tomcat-servlet-api
-%{_mavenpomdir}/JPP-%{name}-servlet-api.pom
 
-%files el-%{elspec}-api
+%files el-%{elspec}-api -f output/dist/src/res/maven/.mfiles-tomcat-el-api
 %defattr(-,root,root,-)
 %doc LICENSE
 %{_javadir}/%{name}-el-%{elspec}-api.jar
-%{_javadir}/%{name}-el-api.jar
 %{libdir}/%{name}-el-%{elspec}-api.jar
-%{_mavenpomdir}/JPP-%{name}-el-api.pom
-%{_mavendepmapfragdir}/%{name}-tomcat-el-api
-
 
 %files webapps
 %defattr(0644,tomcat,tomcat,0755)
