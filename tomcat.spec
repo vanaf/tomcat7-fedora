@@ -54,7 +54,7 @@
 Name:          tomcat
 Epoch:         0
 Version:       %{major_version}.%{minor_version}.%{micro_version}
-Release:       2%{?dist}
+Release:       3%{?dist}
 Summary:       Apache Servlet/JSP Engine, RI for Servlet %{servletspec}/JSP %{jspspec} API
 
 Group:         System Environment/Daemons
@@ -169,6 +169,7 @@ Summary: Apache Tomcat JSP API implementation classes
 Provides: jsp = %{jspspec}
 Provides: jsp22
 Requires: %{name}-servlet-%{servletspec}-api = %{epoch}:%{version}-%{release}
+Requires: %{name}-el-%{elspec}-api = %{epoch}:%{version}-%{release}
 Requires(post): chkconfig
 Requires(postun): chkconfig
 
@@ -668,6 +669,9 @@ fi
 %attr(0644,root,root) %{_unitdir}/%{name}-jsvc.service
 
 %changelog
+* Mon Jun 16 2014 Michal Srb <msrb@redhat.com> - 0:7.0.54-3
+- jsp-api requires el-api
+
 * Sun Jun 08 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0:7.0.54-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
 
